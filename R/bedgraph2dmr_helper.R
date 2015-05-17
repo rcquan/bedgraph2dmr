@@ -10,7 +10,7 @@
 
 ## choose directory of bedGraph files 
 ## and read into R as BSseq object 
-read_bismark <- function(){
+read_bismark <- function() {
     
     fileNames <- list.files(path="data", pattern = ".bedGraph", full.names=TRUE)
     sampleNames <- sapply(fileNames,
@@ -22,8 +22,8 @@ read_bismark <- function(){
                               rmZeroCov = FALSE, verbose = TRUE)
     # ensures the format of chromosome numbers to be "chr#"
     chr_names <- levels(BSseq_obj@rowData@seqnames@values)
-    for(i in 1:length(chr_names)){
-        if(!str_detect(chr_names[i], "chr")){
+    for (i in 1:length(chr_names)) {
+        if (!str_detect(chr_names[i], "chr")) {
             chr_names[i] <- paste("chr", chr_names[i], sep = "")
             print(chr_names[i])
         }
@@ -33,7 +33,7 @@ read_bismark <- function(){
 
 ## assigns phenotypic data (e.g. tumor/normal) and
 ## excludes methylation loci below a minimum threshold by type
-subset_by_type <- function(BSmooth_obj, min_cov = 300){
+subset_by_type <- function(BSmooth_obj, min_cov = 300) {
     
     fileNames <- list.files(path="data", pattern = ".bedGraph")
     sampleNames <- sapply(fileNames,
@@ -68,14 +68,14 @@ subset_by_type <- function(BSmooth_obj, min_cov = 300){
     methCov <- getCoverage(BSmooth_obj)
     # filter out those with less than min_cov
     keepLoci <- which(rowSums(
-        methCov[, BSmooth_obj$type %in% c("control", "normal")] >=min_cov ) >= 1 &
-            rowSums(methCov[, BSmooth_obj$type %in% c("case", "tumor")] >=min_cov ) >= 1)
+        methCov[, BSmooth_obj$type %in% c("control", "normal")] >= min_cov) >= 1 &
+            rowSums(methCov[, BSmooth_obj$type %in% c("case", "tumor")] >= min_cov) >= 1)
     BSmooth_obj <- BSmooth_obj[keepLoci,]
     
     return(BSmooth_obj)
 }
 
-get_tstat <- function(BSmooth_obj, est_var = "group2"){
+get_tstat <- function(BSmooth_obj, est_var = "group2") {
     
     group1 <- which(pData(BSmooth_obj)$type %in% c("case", "tumor"))
     group2 <- which(pData(BSmooth_obj)$type %in% c("control","normal"))
@@ -92,7 +92,7 @@ get_tstat <- function(BSmooth_obj, est_var = "group2"){
     return(BStstat_obj)
 }
 
-export_tstat_data <- function(BStstat_obj){
+export_tstat_data <- function(BStstat_obj) {
     
     ## output marginal distribution of t-stat
     cat("Plotting marginal distribution of the t-statistic...\n")
@@ -113,7 +113,7 @@ export_dmr_data <- function(BSmooth_obj, BStstat_obj,
                             max_gap = 100, 
                             cg_num = 1,
                             mean_diff = 0.1,
-                            min_cov = 300){
+                            min_cov = 300) {
     cat("Exporting table of DMRs to results directory...\n")
     cat(sprintf("FDR < %.2f...\n", FDR))
     cat(sprintf("Subsetting for DMRs with %i or more CpG sites and greater than %.2f 
@@ -132,10 +132,10 @@ export_dmr_data <- function(BSmooth_obj, BStstat_obj,
     
     amplicon_file <- list.files(pattern = ".csv")
     
-    if (length(amplicon_file) == 0 | length(amplicon_file) >=2){
+    if (length(amplicon_file) == 0 | length(amplicon_file) >=2) {
         cat("Amplicon CSV file not detected in working directory. Generating plots for each DMR...\n")
         
-        for (i in 1:nrow(dmrs)){
+        for (i in 1:nrow(dmrs)) {
             png(filename = paste("results/plots/dmr", i, ".png", sep = ""))
             suppressWarnings(plotRegion(BSmooth_obj,
                                         region = dmrs[i,],
@@ -145,7 +145,7 @@ export_dmr_data <- function(BSmooth_obj, BStstat_obj,
             dev.off()
         }
         
-    } else if(length(amplicon_file) == 1){
+    } else if (length(amplicon_file) == 1) {
         
         amplicon <- read.csv(amplicon_file, stringsAsFactors = FALSE)
         amplicon_batch <- amplicon[amplicon$batch %in% batch_num,]
@@ -153,7 +153,7 @@ export_dmr_data <- function(BSmooth_obj, BStstat_obj,
         cat("Generating DMR plots for the following amplicon regions:")
         print(amplicon_batch$amplicon)
         
-        for (i in 1:nrow(amplicon_batch)){
+        for (i in 1:nrow(amplicon_batch)) {
             png(filename = paste("results/plots/dmr_", amplicon_batch[i,1], ".png", sep = ""))
             suppressWarnings(plotRegion(BSmooth_obj, 
                                         region = amplicon_batch[i,c(3:5)],
@@ -164,7 +164,5 @@ export_dmr_data <- function(BSmooth_obj, BStstat_obj,
             title(xlab = amplicon_batch[i, 1])
             dev.off()
         }
-        
     } 
-    
 }
